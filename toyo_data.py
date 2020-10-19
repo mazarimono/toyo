@@ -1,17 +1,22 @@
 from pathlib import Path
-from datetime import datetime 
+from datetime import datetime
 import pandas as pd
-import requests 
+import requests
 import xml.etree.ElementTree as ET
 
-def make_date_path(date_now: datetime, base_path: Path) -> Path: 
-    p = Path(f"./{date_now.year}/{date_now.month:02}/{date_now.year}_{date_now.month:02}_{date_now.day:02}.csv")
+
+def make_date_path(date_now: datetime, base_path: Path) -> Path:
+    p = Path(
+        f"./{date_now.year}/{date_now.month:02}/{date_now.year}_{date_now.month:02}_{date_now.day:02}.csv"
+    )
     base_plus_p = base_path.joinpath(p)
     return base_plus_p
+
 
 def now_datetime_str(date_now: datetime) -> Path:
     now_str = f"{date_now.year}{date_now.month:02}{date_now.day:02}{date_now.hour:02}{date_now.minute:02}"
     return now_str
+
 
 def str_to_datetime(str_date: str) -> datetime:
     if len(str_date) == 12:
@@ -23,17 +28,19 @@ def str_to_datetime(str_date: str) -> datetime:
         return datetime(year, month, day, hour, minutes)
     pass
 
+
 def mkdir_with_pathlib(path: Path) -> None:
     """
     pathはディレクトリ名で渡す
     """
-    
+
     if not path.exists():
         try:
             path.mkdir()
         except:
             mkdir_with_pathlib(path.parent)
             mkdir_with_pathlib(path)
+
 
 def make_dict_for_dataframe(data: list, col_names: list) -> dict:
     """
@@ -44,8 +51,8 @@ def make_dict_for_dataframe(data: list, col_names: list) -> dict:
     for col_name, d in zip(col_names, data):
         data_dict[col_name] = [d]
     return data_dict
-    
-            
+
+
 def open_new_csv(path: Path, data_dict: dict, now_str: str) -> None:
     """
     csvファイルがなければファイルを作成し、
@@ -57,9 +64,30 @@ def open_new_csv(path: Path, data_dict: dict, now_str: str) -> None:
     df = pd.DataFrame(data_dict)
     df.index = [now_str]
     df.to_csv(path)
-    
+
+
 if __name__ == "__main__":
 
+    toyohashi_cols_name = [
+        "平均風速",
+        "風向",
+        "最大風速",
+        "最大風速風向",
+        "気温",
+        "相対湿度",
+        "絶対湿度",
+        "現地気圧",
+        "海面気圧",
+        "10分雨量",
+        "1時間雨量",
+        "1日雨量",
+        "10分移動雨量",
+        "1時間移動雨量",
+        "1日移動雨量",
+        "1分雨量",
+        "天気",
+        "累計雨量",
+    ]
     r = requests.get(xml_url)
     if r.status_code == 200:
         # XMLの読み込み
@@ -75,7 +103,7 @@ if __name__ == "__main__":
             factors.append(tree[0][i].attrib["value"])
         if dt_path.exists():
             df = pd.read_csv(dt_path, index_col=0)
-            df.loc[dt] = factors 
+            df.loc[dt] = factors
             df.to_csv(dt_path)
         else:
             mkdir_with_pathlib(dt_path.parent)
